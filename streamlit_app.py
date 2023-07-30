@@ -48,6 +48,19 @@ speakers = {
 }
 
 
+def get_chat_ai_answer(text_input):
+    # ChatGPT APIのトークン読み込み/GPT-3.5 TurboのAPIキーを設定
+    openai.api_key = st.secrets["chatgpt_api_key"]
+    # ChatGPTによるテキスト生成
+    messages = [{"role": "user", "content": text_input + "という大喜利に答えて。10文字以上50文字以内で答えよ"}]
+    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+    response_data = completion["choices"][0]["message"]["content"].strip()
+    # テキストをファイルに書き出す
+    with open("text.txt", "w", encoding="utf-8") as f:
+        f.write(response_data)
+    return response_data
+
+
 def generate_image(prompt):
     # 画像生成のAPIを呼び出して画像を生成する
     response = openai.Image.create(prompt=prompt, n=1, size="512x512")
@@ -72,9 +85,6 @@ async def get_audio_query(speaker_id):
 
 
 def main():
-    # ChatGPT APIのトークン読み込み/GPT-3.5 TurboのAPIキーを設定
-    openai.api_key = st.secrets["chatgpt_api_key"]
-
     # Streamlitアプリのタイトルとテキスト入力
     st.title("大喜利のお題にAIが答えてくれるアプリ")
     text_input = st.text_area("大喜利のお題入力欄", value="", key="text_input",
@@ -84,14 +94,7 @@ def main():
     selected_speaker = st.selectbox("お題に答えてくれる人", list(speakers.keys()))
 
     if st.button("AIが回答して、イメージ画像が出るよ", key="generate_button"):  # keyを追加
-        # ChatGPTによるテキスト生成
-        messages = [{"role": "user", "content": text_input + "という大喜利に答えて。10文字以上50文字以内で答えよ"}]
-        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
-        response_data = completion["choices"][0]["message"]["content"].strip()
-
-        # テキストをファイルに書き出す
-        with open("text.txt", "w", encoding="utf-8") as f:
-            f.write(response_data)
+        response_data = get_chat_ai_answer(text_input)
 
         # 画像を生成する
         st.spinner("画像生成中...")
