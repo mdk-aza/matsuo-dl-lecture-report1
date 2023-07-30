@@ -76,19 +76,17 @@ def main():
     openai.api_key = st.secrets["chatgpt_api_key"]
 
     # Streamlitアプリのタイトルとテキスト入力
-    st.title("大喜利お題アプリ")
-    text_input = st.text_area("大喜利のお題", value="大喜利のお題を入れて ex) AIITで3ヶ月に1度しか提供されない学食のメニューとは", key="text_input")  # keyを追加
+    st.title("大喜利のお題にAIが答えてくれるアプリ")
+    text_input = st.text_area("大喜利のお題入力欄", value="ex) AIITで3ヶ月に1度しか提供されない学食のメニューとは", key="text_input")  # keyを追加
 
     # 話者を選択するドロップダウンメニュー
     selected_speaker = st.selectbox("お題に答えてくれる人", list(speakers.keys()))
 
-    if st.button("AIが回答するよ", key="generate_button"):  # keyを追加
+    if st.button("AIが回答して、イメージ画像が出るよ", key="generate_button"):  # keyを追加
         # ChatGPTによるテキスト生成
         messages = [{"role": "user", "content": text_input + "という大喜利に答えて。10文字以上50文字以内で答えよ"}]
-        st.write("Messages:", messages)  # 追加
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
         response_data = completion["choices"][0]["message"]["content"].strip()
-        st.write("Response Data:", response_data)  # 追加
 
         # テキストをファイルに書き出す
         with open("text.txt", "w", encoding="utf-8") as f:
@@ -96,7 +94,7 @@ def main():
 
         # 画像を生成する
         st.spinner("画像生成中...")
-        image_url = generate_image(response_data + "というお題の画像")
+        image_url = generate_image(response_data + "という返答のイメージ画像")
         st.success("画像生成が完了しました！")
         st.image(image_url, caption="Generated Image", use_column_width=True)
 
@@ -107,6 +105,7 @@ def main():
         st.success("音声生成が完了しました！")
         st.audio("audio.wav", format="audio/wav")
 
+        st.write("Response Data:", response_data)  # 追加
 
 if __name__ == "__main__":
     main()
