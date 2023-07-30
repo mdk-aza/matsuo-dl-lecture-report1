@@ -3,16 +3,60 @@ import streamlit as st
 import openai
 import asyncio
 
+# 話者とIDの対応辞書
+speakers = {
+    "四国めたん": {
+        "ノーマル": 2,
+        "あまあま": 0,
+        "ツンツン": 6,
+        "セクシー": 4
+    },
+    "ずんだもん": {
+        "ノーマル": 3,
+        "あまあま": 1,
+        "ツンツン": 7,
+        "セクシー": 5
+    },
+    "春日部つむぎ": {
+        "ノーマル": 8
+    },
+    "雨晴はう": {
+        "ノーマル": 10
+    },
+    "波音リツ": {
+        "ノーマル": 9
+    },
+    "玄野武宏": {
+        "ノーマル": 11
+    },
+    "白上虎太郎": {
+        "ノーマル": 12
+    },
+    "青山龍星": {
+        "ノーマル": 13
+    },
+    "冥鳴ひまり": {
+        "ノーマル": 14
+    },
+    "九州そら": {
+        "ノーマル": 16,
+        "あまあま": 15,
+        "ツンツン": 18,
+        "セクシー": 17,
+        "ささやき": 19
+    }
+}
 
-async def get_audio_query():
+async def get_audio_query(speaker_id):
+
     # audio_queryコマンドを実行
-    audio_query_cmd = 'curl -s -X POST "localhost:50021/audio_query?speaker=1" --get --data-urlencode text@text.txt > ' \
-                      'query.json '
+    audio_query_cmd = f'curl -s -X POST "localhost:50021/audio_query?speaker={speaker_id}" --get --data-urlencode ' \
+                      f'text@text.txt > query.json '
     subprocess.run(audio_query_cmd, shell=True, check=True)
 
     # synthesisコマンドを実行
-    synthesis_cmd = 'curl -s -H "Content-Type: application/json" -X POST -d @query.json ' \
-                    '"localhost:50021/synthesis?speaker=1" '
+    synthesis_cmd = f'curl -s -H "Content-Type: application/json" -X POST -d @query.json ' \
+                    f'"localhost:50021/synthesis?speaker={speaker_id}" '
     response = subprocess.run(synthesis_cmd, shell=True, check=True, capture_output=True)
 
     # 音声をファイルに保存する
@@ -21,14 +65,15 @@ async def get_audio_query():
 
 
 def main():
-    # ChatGPT APIのエンドポイント
-    chatgpt_url = "https://api.openai.com/v1/chat/completions"
     # ChatGPT APIのトークン読み込み/GPT-3.5 TurboのAPIキーを設定
     openai.api_key = st.secrets["chatgpt_api_key"]
 
     # Streamlitアプリのタイトルとテキスト入力
     st.title("Voicevox Core with ChatGPT Streamlit Demo For AIIT System Programming Report 4")
     text_input = st.text_area("Enter a prompt:", value="AIITの大喜利をして", key="text_input")  # keyを追加
+
+    # 話者を選択するドロップダウンメニュー
+    selected_speaker = st.selectbox("Select a speaker:", list(speakers.keys()))
 
     if st.button("Generate Voice", key="generate_button"):  # keyを追加
         # ChatGPTによるテキスト生成
@@ -44,7 +89,8 @@ def main():
 
         # 非同期処理を実行する
         st.spinner("音声生成中...")
-        asyncio.run(get_audio_query())
+        speaker_id = speakers[selected_speaker]["ノーマル"]
+        asyncio.run(get_audio_query(speaker_id))
         st.success("音声生成が完了しました！")
         st.audio("audio.wav", format="audio/wav")
 
