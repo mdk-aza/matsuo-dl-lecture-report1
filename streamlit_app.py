@@ -1,12 +1,7 @@
-import streamlit_authenticator as sa
+import streamlit as st
 
-auth = sa.Authenticator(
-    SECRET_KEY,
-    token_url="/token",
-    token_ttl=3600,
-    password_hashing_method=sa.PasswordHashingMethod.BCRYPT,
-)
+# Everything is accessible via the st.secrets dict:
 
-@auth.login_required
-def protected():
-    st.write("This is a protected route.")
+st.write("DB username:", st.secrets["db_username"])
+st.write("DB password:", st.secrets["db_password"])
+st.write("My cool secrets:", st.secrets["my_cool_secrets"]["things_i_like"])
